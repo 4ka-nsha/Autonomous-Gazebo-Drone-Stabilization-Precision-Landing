@@ -1,47 +1,97 @@
-# Autonomous Gazebo Drone Stabilization & Precision Landing
+# PX4 Autonomous Landing Submission
 
-## Overview
+A submission for the PX4 PID Tuning & Precision Landing challenge, built using:
 
-This repository features an integrated simulation framework for an autonomous multicopter drone operating within a virtual environment. The project bridges intelligent control algorithms with high-fidelity physical simulation. It features an adaptive PID tuning system that dynamically tracks attitude and altitude parameters alongside a precision waypoint navigation script. The system coordinates taking off from a home position, calculating global GPS coordinates from local meter offsets, navigating to a target location and executing a stabilized, centered touchdown on a specific simulated helipad.
+- PX4 SITL
+- Gazebo Classic
+- MAVSDK Python
+- Custom `safe_landing.world` helipad environment
 
-## Problem Statement
+This repository documents the PID tuning process and the autonomous flight logic used to take off, navigate to, and land on the helipad.
 
-Standard autonomous flight configurations often suffer from localized drift, sensor calibration lag, and horizontal position inaccuracies during final descents, preventing reliable precision landings. Additionally, static PID parameters fail to account for simulation environments or varying aerodynamic loads. This project addresses these limitations by developing a software-in-the-loop (SITL) automation pipeline that dynamically monitors PID rates and utilizes localized GPS coordinate translation vectors to guide a drone safely to a precise offset landing matrix.
+---
 
-## Tech Stack
+## Demo
 
-- **PX4 Autopilot** — Flight control firmware running in Software-In-The-Loop (SITL) mode
-- **Gazebo** — Physics simulation environment hosting the drone model and the custom cluttered world with the helipad
-- **MAVSDK (Python)** — Offboard API used to connect to PX4, read/write parameters, and issue action/telemetry commands
-- **Python 3 / asyncio** — All mission logic is written as asynchronous coroutines to handle concurrent telemetry streams (position, velocity, health) without blocking
-- **MAVLink** — Underlying communication protocol between the scripts and PX4 SITL (`udpin://0.0.0.0:14540`)
+[#demo](#demo)
+
+[![Watch the demo](asset/thumbnail.png)](demo_video.mp4)
+
+---
+
+## Features
+
+- Two independent autonomous landing implementations:
+  - Mission-item based (`mission.py`)
+  - `goto_location` based (`landing_script_v2.py`)
+- PID-tuned rate and velocity controllers for stable flight
+- Continuous position feedback during approach and descent
+- Local-to-global coordinate conversion for the helipad target
+
+---
+
+## Challenge Objective
+
+Participants must:
+
+1. Stabilize the drone using PID tuning
+2. Achieve stable hover
+3. Navigate safely to the helipad location `(5, 3)`
+4. Land autonomously on the helipad
+
+---
 
 ## Repository Structure
 
 ```
-├── demo_video.mp4        # Screen recording of a successful autonomous landing on provided helipad
-├── landing_script.py     # Precision navigation and helipad targeting script
-├── pid_tuning.py         # Baseline PID readout, adaptive vertical-velocity correction, final gain logging
-├── report.pdf            # Write-up including tuning process, parameters modified, challenges faced, final approach
-└── README.md             # Project documentation
+AutonomousLanding/
+│
+├── README.md
+├── demo_video.mp4
+├── report.pdf
+│
+├── mission.py
+├── landing_script_v2.py
+└── pid_tuning.py
 ```
 
-## Features
+> Note: `pid_tuning.py` is included as a reference for the tuning process described in `report.pdf`. The final tuned parameter values have already been applied directly within `mission.py` and `landing_script_v2.py` — it does not need to be run separately to reproduce the demo.
 
-- **Asynchronous Telemetry Snapshotting:** Solves blocking/ hanging issues by capturing real-time hardware and telemetry states utilizing clean asynchronous stream iterators.
-- **Local-to-Global Coordinate Translation:** Utilizes an equirectangular approximation algorithm incorporating Earth's equatorial radius to map local $(X, Y)$ meter targets into precise global GPS coordinates.
-- **Background Adaptive Engine:** Concurrently monitors and logs multi-axis rate parameters in the background while the vehicle handles main flight sequences.
-- **Precision Descent Stabilization Check:** Tracks real-time velocity and distance parameters, holding the exact absolute position over the helipad until horizontal drift settles before letting the final descent cycle execute.
+---
 
-## Methodology
+## Running the Simulation
 
-- **Pre-Flight & Handshake Synchronization:**
-The scripts initialize an asynchronous connection string over UDP loopback. The system queries immediate telemetry states using single-frame snapshots to fetch initial home positions and absolute heights without locking up the MAVSDK listener loop.
-- **Parameter Extraction & Calibration Hold:**
-While a background task monitors and logs multi-axis attitude and altitude rate constants, the main thread triggers an arm command. It introduces a calculated delay to allow the simulated IMU/EKF2 internal sensor calibration parameters to stabilize cleanly before launching.
-- **Kinematic Navigation:**
-Using the home GPS coordinates as a baseline, local offsets are translated into a global flight plan. The drone climbs to a relative altitude of 5 meters. Absolute altitude commands (AMSL) are computed programmatically:
-$$\text{Target Altitude} = \text{Home Altitude} + 5.0\text{m}$$
-This formula ensures the values are accepted by the PX4 firmware constraints without command rejection.
-- **Precision Centering & Landing Loop:**
-The drone traverses the airspace toward the calculated coordinates. An active loop samples real-time position discrepancies and horizontal flight speeds. Once the vehicle maintains a position within a tight tolerance threshold and its velocity approaches zero, the loop breaks, a micro-correction hold is executed and the final autonomous landing sequence is completed.
+Start PX4 SITL with the helipad world:
+
+```
+cd PX4-Autopilot
+PX4_SITL_WORLD=safe_landing make px4_sitl gazebo-classic
+```
+
+In another terminal, run either landing script:
+
+```
+python3 mission.py
+```
+
+or
+
+```
+python3 landing_script_v2.py
+```
+
+---
+
+## Landing Workflow
+
+1. Connect to the drone
+2. Wait for a valid global position / home position estimate
+3. Arm and take off
+4. Navigate to the helipad's target location
+5. Descend and land autonomously
+
+---
+
+## Report
+
+See `report.pdf` for the full write-up covering the PID tuning process, parameters modified, challenges faced, and the final approach used.
