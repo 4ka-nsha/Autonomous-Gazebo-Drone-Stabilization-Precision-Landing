@@ -15,7 +15,7 @@ This repository documents the PID tuning process and the autonomous flight logic
 
 [#demo](#demo)
 
-[![Watch the demo](asset/thumbnail.png)](demo_video.mp4)
+[![Watch the demo](assets/thumbnail.png)](demo_video.mp4)
 
 ---
 
