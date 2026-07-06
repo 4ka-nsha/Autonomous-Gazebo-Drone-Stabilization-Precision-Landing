@@ -108,8 +108,7 @@ Touchdown
 ```
 ---
 
-## Project Documentaion
+## Project Documentation
 
-## Report
 
 See `report.pdf` for the complete project report, including the PID tuning process, autonomous landing approach, parameter modifications and challenges encountered.
