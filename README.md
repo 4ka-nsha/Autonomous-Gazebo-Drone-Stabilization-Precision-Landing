@@ -52,7 +52,10 @@ AutonomousLanding/
 │
 ├── mission.py
 ├── landing_script_v2.py
-└── pid_tuning.py
+├── pid_tuning.py
+│
+└── asset/
+    └── thumbnail.png
 ```
 
 > Note: `pid_tuning.py` is included as a reference for the tuning process described in `report.pdf`. The final tuned parameter values have already been applied directly within `mission.py` and `landing_script_v2.py` — it does not need to be run separately to reproduce the demo.
