@@ -23,7 +23,7 @@ This repository documents the PID tuning process and the autonomous flight logic
 
 - Two independent autonomous landing implementations:
   - PX4 mission-based navigation script (`mission.py`)
-  - Manually sequenced guided flight script (`landing_script_v2.py`) (Selected Approach)
+  - Manually sequenced guided flight script (`landing_script_v2.py`)
 - PID-tuned rate and velocity controllers for stable flight
 - Continuous position feedback during approach and descent
 - Local-to-global coordinate conversion for the helipad target
